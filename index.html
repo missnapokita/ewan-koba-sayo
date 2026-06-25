@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GitHub JSON Editor</title>
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,Arial,sans-serif;
+      background:
+        radial-gradient(circle at top left,#243b35 0,#0b0f0e 35%,#070808 100%);
+      color:#fff;
+      min-height:100vh;
+    }
+    .wrap{width:min(1100px,94%);margin:auto;padding:28px 0}
+    .card{
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+      backdrop-filter:blur(14px);
+      border-radius:24px;
+      padding:22px;
+    }
+    .center{max-width:430px;margin:70px auto}
+    h1,h2,h3{margin:0 0 12px}
+    p{color:#b8c7c2;margin:6px 0 18px}
+    label{font-size:13px;color:#b8c7c2;margin:13px 0 7px;display:block}
+    input,textarea{
+      width:100%;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.35);
+      color:#fff;
+      border-radius:14px;
+      padding:13px 14px;
+      outline:none;
+      font-size:14px;
+    }
+    textarea{min-height:90px;resize:vertical}
+    input:focus,textarea:focus{border-color:#00e676;box-shadow:0 0 0 3px rgba(0,230,118,.12)}
+    .btn{
+      border:0;
+      border-radius:14px;
+      padding:12px 16px;
+      color:#06110d;
+      font-weight:800;
+      cursor:pointer;
+      background:linear-gradient(135deg,#00e676,#00b761);
+      box-shadow:0 10px 25px rgba(0,230,118,.18);
+    }
+    .btn:hover{filter:brightness(1.08)}
+    .btn2{
+      background:rgba(255,255,255,.08);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:none;
+    }
+    .danger{background:#ff4d4d;color:#fff}
+    .row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    .hidden{display:none!important}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:15px;margin-top:18px}
+    .item{
+      overflow:hidden;
+      border-radius:20px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.1);
+    }
+    .thumb{
+      height:150px;
+      background:#111;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#7d8b87;
+    }
+    .thumb img{width:100%;height:100%;object-fit:cover}
+    .info{padding:14px}
+    .hero{font-size:18px;font-weight:900;margin-bottom:5px}
+    .skin{color:#b8c7c2;font-size:14px;margin-bottom:12px}
+    .itemBtns{display:flex;gap:8px}
+    .itemBtns button{flex:1}
+    .status{
+      margin-top:14px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:rgba(0,0,0,.25);
+      color:#c9d8d3;
+      font-size:14px;
+      white-space:pre-wrap;
+    }
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.72);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:99;
+    }
+    .modalBox{
+      width:min(540px,100%);
+      max-height:88vh;
+      overflow:auto;
+      background:#101513;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:24px;
+      padding:20px;
+      box-shadow:0 30px 80px rgba(0,0,0,.55);
+    }
+    .preview{
+      margin-top:12px;
+      height:170px;
+      background:#070808;
+      border-radius:18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      color:#73807c;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .preview img{width:100%;height:100%;object-fit:cover}
+    @media(max-width:800px){.row{grid-template-columns:1fr}.topbar{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+
+  <div id="loginPage" class="wrap">
+    <div class="card center">
+      <h1>GitHub JSON Editor</h1>
+      <p>Login once. Saved sa browser mo ang username at token.</p>
+
+      <label>GitHub Username</label>
+      <input id="username" placeholder="insert github username">
+
+      <label>GitHub Token</label>
+      <input id="token" type="password" placeholder="insert github token">
+
+      <button class="btn" style="width:100%;margin-top:18px" onclick="login()">Continue</button>
+
+      <div class="status">
+Tip: Gumamit ng fine-grained token na may Contents Read/Write permission lang sa repo mo.
+      </div>
+    </div>
+  </div>
+
+  <div id="editorPage" class="wrap hidden">
+    <div class="topbar">
+      <div>
+        <h1>JSON Editor</h1>
+        <p id="welcome"></p>
+      </div>
+      <div class="actions">
+        <button class="btn btn2" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Repository Name</label>
+          <input id="repo" placeholder="example: masterkit">
+        </div>
+        <div>
+          <label>Branch</label>
+          <input id="branch" placeholder="main" value="main">
+        </div>
+        <div>
+          <label>JSON File Path</label>
+          <input id="path" placeholder="version.json or data/skins.json">
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:16px">
+        <button class="btn" onclick="loadJson()">Load JSON</button>
+        <button class="btn btn2" onclick="addItem()">Add New</button>
+        <button class="btn" onclick="saveJson()">Save to GitHub</button>
+      </div>
+
+      <div id="status" class="status">Ready.</div>
+    </div>
+
+    <div id="list" class="grid"></div>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modalBox">
+      <h2>Edit Item</h2>
+      <p>Palitan mo lang ang laman ng fields.</p>
+
+      <div id="fields"></div>
+
+      <div class="preview" id="imgPreview">Image preview</div>
+
+      <div class="actions" style="margin-top:16px">
+        <button class="btn" onclick="saveEdit()">Save Edit</button>
+        <button class="btn btn2" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+let jsonData = [];
+let fileSha = "";
+let editIndex = -1;
+
+const els = {
+  loginPage: document.getElementById("loginPage"),
+  editorPage: document.getElementById("editorPage"),
+  username: document.getElementById("username"),
+  token: document.getElementById("token"),
+  repo: document.getElementById("repo"),
+  branch: document.getElementById("branch"),
+  path: document.getElementById("path"),
+  list: document.getElementById("list"),
+  status: document.getElementById("status"),
+  welcome: document.getElementById("welcome"),
+  modal: document.getElementById("modal"),
+  fields: document.getElementById("fields"),
+  imgPreview: document.getElementById("imgPreview")
+};
+
+function setStatus(msg){ els.status.textContent = msg; }
+
+function init(){
+  els.username.value = localStorage.getItem("gh_username") || "";
+  els.token.value = localStorage.getItem("gh_token") || "";
+  els.repo.value = localStorage.getItem("gh_repo") || "";
+  els.branch.value = localStorage.getItem("gh_branch") || "main";
+  els.path.value = localStorage.getItem("gh_path") || "";
+
+  if(els.username.value && els.token.value){
+    showEditor();
+  }
+}
+init();
+
+function login(){
+  const user = els.username.value.trim();
+  const token = els.token.value.trim();
+
+  if(!user || !token){
+    alert("Lagyan muna ng username at token.");
+    return;
+  }
+
+  localStorage.setItem("gh_username", user);
+  localStorage.setItem("gh_token", token);
+  showEditor();
+}
+
+function showEditor(){
+  els.loginPage.classList.add("hidden");
+  els.editorPage.classList.remove("hidden");
+  els.welcome.textContent = "Logged in as @" + localStorage.getItem("gh_username");
+}
+
+function logout(){
+  localStorage.removeItem("gh_token");
+  els.editorPage.classList.add("hidden");
+  els.loginPage.classList.remove("hidden");
+}
+
+function saveInputs(){
+  localStorage.setItem("gh_repo", els.repo.value.trim());
+  localStorage.setItem("gh_branch", els.branch.value.trim() || "main");
+  localStorage.setItem("gh_path", els.path.value.trim());
+}
+
+function getHeaders(){
+  return {
+    "Authorization": "Bearer " + localStorage.getItem("gh_token"),
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+}
+
+function apiUrl(){
+  const owner = localStorage.getItem("gh_username");
+  const repo = els.repo.value.trim();
+  const path = els.path.value.trim();
+  return `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+}
+
+function decodeBase64Unicode(str){
+  const bin = atob(str.replace(/\n/g, ""));
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return new TextDecoder("utf-8").decode(bytes);
+}
+
+function encodeBase64Unicode(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin);
+}
+
+async function loadJson(){
+  saveInputs();
+
+  if(!els.repo.value.trim() || !els.path.value.trim()){
+    alert("Lagyan muna ng repository name at JSON file path.");
+    return;
+  }
+
+  setStatus("Loading JSON from GitHub...");
+
+  try{
+    const res = await fetch(apiUrl() + "?ref=" + encodeURIComponent(els.branch.value.trim() || "main"), {
+      headers: getHeaders()
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      throw new Error(data.message || "Failed to load file.");
+    }
+
+    fileSha = data.sha;
+    const text = decodeBase64Unicode(data.content);
+    const parsed = JSON.parse(text);
+
+    if(Array.isArray(parsed)){
+      jsonData = parsed;
+    }else if(typeof parsed === "object" && parsed !== null){
+      jsonData = [parsed];
+    }else{
+      throw new Error("JSON must be object or array of objects.");
+    }
+
+    renderList();
+    setStatus("Loaded successfully. Items: " + jsonData.length);
+  }catch(err){
+    setStatus("Error: " + err.message);
+  }
+}
+
+function getImageUrl(item){
+  return item.image || item.image_url || item.img || item.thumbnail || item.poster || "";
+}
+
+function getTitle(item){
+  return item.hero_name || item.name || item.title || "No hero_name";
+}
+
+function getSubtitle(item){
+  return item.skin_name || item.subtitle || item.type || "No skin_name";
+}
+
+function renderList(){
+  els.list.innerHTML = "";
+
+  if(jsonData.length === 0){
+    els.list.innerHTML = `<div class="card"><h3>No items</h3><p>Click Add New para maglagay.</p></div>`;
+    return;
+  }
+
+  jsonData.forEach((item, index) => {
+    const image = getImageUrl(item);
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+      <div class="thumb">
+        ${image ? `<img src="${escapeHtml(image)}" onerror="this.parentElement.textContent='Image failed'">` : `No image`}
+      </div>
+      <div class="info">
+        <div class="hero">${escapeHtml(getTitle(item))}</div>
+        <div class="skin">${escapeHtml(getSubtitle(item))}</div>
+        <div class="itemBtns">
+          <button class="btn" onclick="openEdit(${index})">Edit</button>
+          <button class="btn danger" onclick="deleteItem(${index})">Delete</button>
+        </div>
+      </div>
+    `;
+    els.list.appendChild(div);
+  });
+}
+
+function addItem(){
+  jsonData.unshift({
+    hero_name: "",
+    skin_name: "",
+    image: ""
+  });
+  renderList();
+  openEdit(0);
+}
+
+function deleteItem(index){
+  if(confirm("Delete this item?")){
+    jsonData.splice(index,1);
+    renderList();
+  }
+}
+
+function openEdit(index){
+  editIndex = index;
+  const item = jsonData[index] || {};
+
+  els.fields.innerHTML = "";
+
+  let keys = Object.keys(item);
+
+  if(keys.length === 0){
+    keys = ["hero_name","skin_name","image"];
+  }
+
+  keys.forEach(key => addField(key, item[key]));
+
+  const addKeyBtn = document.createElement("button");
+  addKeyBtn.className = "btn btn2";
+  addKeyBtn.style.marginTop = "14px";
+  addKeyBtn.textContent = "+ Add Custom Field";
+  addKeyBtn.onclick = () => {
+    const key = prompt("Field name? example: hero_name");
+    if(key && key.trim()){
+      addField(key.trim(), "");
+    }
+  };
+  els.fields.appendChild(addKeyBtn);
+
+  updatePreview();
+  els.modal.classList.remove("hidden");
+}
+
+function addField(key, value){
+  const wrap = document.createElement("div");
+  wrap.className = "fieldWrap";
+  wrap.innerHTML = `
+    <label>${escapeHtml(key)}: insert ${escapeHtml(key.replaceAll("_"," "))}</label>
+    <input data-key="${escapeHtml(key)}" value="${escapeHtml(String(value ?? ""))}" oninput="updatePreview()">
+  `;
+  els.fields.appendChild(wrap);
+}
+
+function updatePreview(){
+  const inputs = els.fields.querySelectorAll("input[data-key]");
+  let img = "";
+
+  inputs.forEach(input => {
+    const k = input.dataset.key.toLowerCase();
+    if(["image","image_url","img","thumbnail","poster"].includes(k)){
+      img = input.value.trim();
+    }
+  });
+
+  if(img){
+    els.imgPreview.innerHTML = `<img src="${escapeHtml(img)}" onerror="this.parentElement.textContent='Image failed'">`;
+  }else{
+    els.imgPreview.textContent = "Image preview";
+  }
+}
+
+function saveEdit(){
+  const inputs = els.fields.querySelectorAll("input[data-key]");
+  const obj = {};
+
+  inputs.forEach(input => {
+    obj[input.dataset.key] = input.value.trim();
+  });
+
+  jsonData[editIndex] = obj;
+  closeModal();
+  renderList();
+}
+
+function closeModal(){
+  els.modal.classList.add("hidden");
+}
+
+async function saveJson(){
+  saveInputs();
+
+  if(!els.repo.value.trim() || !els.path.value.trim()){
+    alert("Lagyan muna ng repository name at JSON file path.");
+    return;
+  }
+
+  if(!fileSha){
+    const ok = confirm("Wala pang loaded SHA. Recommended muna mag Load JSON. Continue save anyway?");
+    if(!ok) return;
+  }
+
+  setStatus("Saving to GitHub...");
+
+  try{
+    const content = JSON.stringify(jsonData, null, 2);
+
+    const body = {
+      message: "Update JSON via GitHub Pages editor",
+      content: encodeBase64Unicode(content),
+      branch: els.branch.value.trim() || "main"
+    };
+
+    if(fileSha) body.sha = fileSha;
+
+    const res = await fetch(apiUrl(), {
+      method: "PUT",
+      headers: {
+        ...getHeaders(),
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      throw new Error(data.message || "Failed to save file.");
+    }
+
+    fileSha = data.content.sha;
+    setStatus("Saved successfully to GitHub!");
+  }catch(err){
+    setStatus("Error: " + err.message);
+  }
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+</script>
+</body>
+</html>
