@@ -1,8 +1,9 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
 <title>MasterKit Admin</title>
 <style>
 :root{
@@ -38,90 +39,20 @@ input,textarea,select{width:100%;border:1px solid var(--line);background:#0c0c0c
 @media(max-width:390px){.horizontal{grid-template-columns:repeat(2,1fr)}}
 </style>
 
-<script>
-(function(){
-  window.__mkBootError = '';
-  window.onerror = function(message, source, line, column){
-    window.__mkBootError = String(message || 'Unknown JavaScript error') + ' (line ' + line + ')';
-    var box = document.getElementById('loginStatus');
-    if (box) box.textContent = 'JavaScript error: ' + window.__mkBootError;
-    return false;
-  };
-  window.masterkitEnterDashboard = function(){
-    try {
-      var username = document.getElementById('username');
-      var token = document.getElementById('token');
-      var status = document.getElementById('loginStatus');
-
-      var u = username ? String(username.value || '').trim() : '';
-      var t = token ? String(token.value || '').trim() : '';
-
-      if (!u) u = 'missnapokita';
-
-      try { localStorage.setItem('mk_gh_username', u); } catch(e) {}
-      if (t) {
-        try { localStorage.setItem('mk_gh_token', t); } catch(e) {}
-      }
-
-      var loginPage = document.getElementById('loginPage');
-      var dashboard = document.getElementById('dashboard');
-      var bottomNav = document.getElementById('bottomNav');
-
-      if (loginPage) loginPage.classList.add('hidden');
-      if (dashboard) dashboard.classList.remove('hidden');
-      if (bottomNav) bottomNav.classList.remove('hidden');
-
-      var welcome = document.getElementById('welcome');
-      if (welcome) welcome.textContent = 'Logged in as @' + u;
-
-      if (status) status.textContent = 'Dashboard opened. Loading skins.json...';
-
-      setTimeout(function(){
-        if (typeof window.selectDataset === 'function') {
-          window.selectDataset('skins', true);
-        } else {
-          var mainStatus = document.getElementById('status');
-          if (mainStatus) {
-            mainStatus.textContent =
-              'Dashboard opened, but the main admin script did not initialize.';
-          }
-        }
-      }, 0);
-
-      return false;
-    } catch(e) {
-      var box = document.getElementById('loginStatus');
-      if (box) box.textContent = 'Login error: ' + (e && e.message ? e.message : e);
-      return false;
-    }
-  };
-
-  document.addEventListener('DOMContentLoaded', function(){
-    var btn = document.getElementById('enterDashboardBtn');
-    if (btn) {
-      btn.onclick = null;
-      btn.addEventListener('click', function(e){
-        e.preventDefault();
-        window.masterkitEnterDashboard();
-      });
-    }
-  });
-})();
-</script>
 </head>
 <body>
-<div id="loginPage" class="app"><div class="card login"><h1>MasterKit Admin</h1><p style="color:var(--muted)">Token is optional for viewing. It is required only when publishing changes.</p><label>GitHub Username</label><input id="username" placeholder="GitHub username"><label>Fine-grained GitHub Token (optional until Publish)</label><input id="token" type="password" placeholder="Token with Contents: Read and write"><button id="enterDashboardBtn" type="button" class="btn" style="width:100%;margin-top:16px" onclick="return masterkitEnterDashboard()">Enter Dashboard</button><button class="btn btn2" style="width:100%;margin-top:10px" onclick="resetSaved()">Reset Saved Login</button><div class="status dangerNote">Use a fine-grained token limited to the two MasterKit repositories. Never publish this HTML with a token already inside it.</div><div class="status" id="loginStatus">Ready. Tap Enter Dashboard.</div></div></div>
-<div id="dashboard" class="app hidden">
+<div class="app" id="loginPage"><div class="card login"><h1>MasterKit Admin</h1><p style="color:var(--muted)">Token is optional for viewing. It is required only when publishing changes.</p><label>GitHub Username</label><input id="username" placeholder="GitHub username"/><label>Fine-grained GitHub Token (optional until Publish)</label><input id="token" placeholder="Token with Contents: Read and write" type="password"/><button class="btn" id="enterDashboardBtn" onclick="login(); return false;" style="width:100%;margin-top:16px" type="button">Enter Dashboard</button><button class="btn btn2" onclick="resetSaved()" style="width:100%;margin-top:10px">Reset Saved Login</button><div class="status dangerNote">Use a fine-grained token limited to the two MasterKit repositories. Never publish this HTML with a token already inside it.</div><div class="status" id="loginStatus">Ready. Tap Enter Dashboard.</div></div></div>
+<div class="app hidden" id="dashboard">
 <div class="header"><div class="brand"><h1>MasterKit Admin</h1><p id="welcome">Welcome</p></div><div class="actions"><button class="btn btn2" onclick="loadJson()">Reload</button><button class="btn btn2" onclick="logout()">Logout</button></div></div>
 <div class="tabs" id="datasetTabs"></div>
 <div class="card"><div class="sectionTitle" style="margin-top:0"><div><h2 id="datasetTitle">Dataset</h2><div class="datasetInfo" id="datasetInfo"></div></div><span class="pill" id="dirtyPill">Saved</span></div><div class="tools"><button class="btn" onclick="loadJson()">Load JSON</button><button class="btn" onclick="publishJson()">Publish</button><button class="btn btn2" onclick="previewRaw()">Raw JSON</button><button class="btn btn2" onclick="downloadBackup()">Backup</button><button class="btn btn2" onclick="discardReload()">Discard / Reload</button></div><div class="status" id="status">Choose a dataset, then load it.</div></div>
 <div class="stats"><div class="stat"><b id="totalCount">0</b><span>Total Items</span></div><div class="stat"><b id="shownCount">0</b><span>Shown</span></div><div class="stat"><b id="baseCount">0</b><span>Base Heroes</span></div><div class="stat"><b id="changedText">0</b><span>Local Changes</span></div></div>
-<div class="card"><div class="sectionTitle" style="margin-top:0"><div><h2 id="managerTitle">Content Manager</h2><small id="managerDesc">Edit the selected JSON.</small></div><button class="btn" onclick="addItem()">+ Add</button></div><div class="searchRow"><input id="searchBox" oninput="render()" placeholder="Search all fields..."><select id="statusFilter" onchange="render()"><option value="">All status</option><option value="enabled">Enabled</option><option value="disabled">Disabled</option></select><select id="skinView" onchange="render()"><option value="base">Base heroes only</option><option value="all">All skins</option><option value="numbered">Numbered skins only</option></select></div><div class="tools" style="margin-top:13px"><button class="btn btn2" onclick="sortAZ()">Sort A-Z</button><button class="btn btn2" onclick="testVisibleImages()">Test Images</button><button class="btn btn2" onclick="toggleLogs()">Logs</button><button class="btn btnRed" onclick="clearLocal()">Clear Draft</button></div></div>
-<div class="sectionTitle"><h2>All Items</h2><small id="listInfo">0 items</small></div><div id="list" class="horizontal"></div>
-<div id="logsCard" class="card hidden" style="margin-top:16px"><div class="sectionTitle" style="margin-top:0"><h2>Logs</h2><button class="btn btn2" onclick="toggleLogs()">Hide</button></div><div id="logs" class="logs">No logs yet.</div></div>
+<div class="card"><div class="sectionTitle" style="margin-top:0"><div><h2 id="managerTitle">Content Manager</h2><small id="managerDesc">Edit the selected JSON.</small></div><button class="btn" onclick="addItem()">+ Add</button></div><div class="searchRow"><input id="searchBox" oninput="render()" placeholder="Search all fields..."/><select id="statusFilter" onchange="render()"><option value="">All status</option><option value="enabled">Enabled</option><option value="disabled">Disabled</option></select><select id="skinView" onchange="render()"><option value="base">Base heroes only</option><option value="all">All skins</option><option value="numbered">Numbered skins only</option></select></div><div class="tools" style="margin-top:13px"><button class="btn btn2" onclick="sortAZ()">Sort A-Z</button><button class="btn btn2" onclick="testVisibleImages()">Test Images</button><button class="btn btn2" onclick="toggleLogs()">Logs</button><button class="btn btnRed" onclick="clearLocal()">Clear Draft</button></div></div>
+<div class="sectionTitle"><h2>All Items</h2><small id="listInfo">0 items</small></div><div class="horizontal" id="list"></div>
+<div class="card hidden" id="logsCard" style="margin-top:16px"><div class="sectionTitle" style="margin-top:0"><h2>Logs</h2><button class="btn btn2" onclick="toggleLogs()">Hide</button></div><div class="logs" id="logs">No logs yet.</div></div>
 </div>
-<div id="modal" class="modal hidden"><div class="modalBox"><div class="sectionTitle" style="margin-top:0"><h2 id="modalTitle">Edit Item</h2><button class="btn btn2" onclick="closeModal()">Close</button></div><div id="fields"></div><button class="btn btn2" style="margin-top:13px" onclick="addCustomField()">+ Add Custom Field</button><div class="preview" id="imgPreview">Image Preview</div><div class="actions" style="margin-top:15px"><button class="btn" onclick="saveEdit()">Save Local</button><button class="btn btn2" onclick="closeModal()">Cancel</button></div></div></div>
-<div id="rawModal" class="modal hidden"><div class="modalBox"><div class="sectionTitle" style="margin-top:0"><h2>Raw JSON</h2><button class="btn btn2" onclick="closeRaw()">Close</button></div><textarea id="rawBox" style="min-height:430px"></textarea><div class="actions" style="margin-top:12px"><button class="btn" onclick="applyRaw()">Apply Locally</button></div></div></div>
+<div class="modal hidden" id="modal"><div class="modalBox"><div class="sectionTitle" style="margin-top:0"><h2 id="modalTitle">Edit Item</h2><button class="btn btn2" onclick="closeModal()">Close</button></div><div id="fields"></div><button class="btn btn2" onclick="addCustomField()" style="margin-top:13px">+ Add Custom Field</button><div class="preview" id="imgPreview">Image Preview</div><div class="actions" style="margin-top:15px"><button class="btn" onclick="saveEdit()">Save Local</button><button class="btn btn2" onclick="closeModal()">Cancel</button></div></div></div>
+<div class="modal hidden" id="rawModal"><div class="modalBox"><div class="sectionTitle" style="margin-top:0"><h2>Raw JSON</h2><button class="btn btn2" onclick="closeRaw()">Close</button></div><textarea id="rawBox" style="min-height:430px"></textarea><div class="actions" style="margin-top:12px"><button class="btn" onclick="applyRaw()">Apply Locally</button></div></div></div>
 <div class="bottomNav hidden" id="bottomNav"><button onclick="selectDataset('version')">Update</button><button onclick="selectDataset('skins')">Skins</button><button onclick="selectDataset('upgrades')">Upgrades</button><button onclick="publishJson()">Publish</button></div>
 <script>
 const DATASETS={
@@ -139,18 +70,62 @@ function storeRemove(key){delete memoryStore[key];try{localStorage.removeItem(ke
 function tokenValue(){return ($('token')?.value||storeGet('mk_gh_token')||'').trim()}
 function usernameValue(){return ($('username')?.value||storeGet('mk_gh_username')||'missnapokita').trim()}
 window.addEventListener('error',e=>{const box=$('loginStatus');if(box)box.textContent='JavaScript error: '+(e.message||'Unknown error')});
-function init(){try{$('username').value=storeGet('mk_gh_username')||'missnapokita';$('token').value=storeGet('mk_gh_token')||'';buildTabs();if($('username').value&&$('token').value){showDashboard();selectDataset(storeGet('mk_dataset')||'skins',true)}}catch(e){const b=$('loginStatus');if(b)b.textContent='Initialization error: '+e.message}}
+function init(){
+  try{
+    $('username').value=storeGet('mk_gh_username')||'missnapokita';
+    $('token').value=storeGet('mk_gh_token')||'';
+    buildTabs();
+    $('loginStatus').textContent='Ready. Token is optional until Publish.';
+  }catch(e){
+    const b=$('loginStatus');
+    if(b)b.textContent='Initialization error: '+e.message;
+  }
+}
 function buildTabs(){ $('datasetTabs').innerHTML=Object.entries(DATASETS).map(([k,d])=>`<button class="tab" data-key="${k}" onclick="selectDataset('${k}')">${d.label}</button>`).join('') }
 function login(){
-  const u=($('username').value.trim()||'missnapokita');
-  const t=$('token').value.trim();
-  storeSet('mk_gh_username',u);
-  if(t) storeSet('mk_gh_token',t);
-  $('loginStatus').textContent='Opening dashboard...';
-  showDashboard();
-  selectDataset(storeGet('mk_dataset')||'skins',true);
+  try{
+    const u = ($('username').value.trim() || 'missnapokita');
+    const t = $('token').value.trim();
+
+    storeSet('mk_gh_username', u);
+    if(t) storeSet('mk_gh_token', t);
+
+    $('loginStatus').textContent = 'Opening dashboard...';
+    showDashboard();
+    selectDataset('skins', true);
+  }catch(e){
+    $('loginStatus').textContent = 'Login error: ' + e.message;
+  }
 }
 function showDashboard(){$('loginPage').classList.add('hidden');$('dashboard').classList.remove('hidden');$('bottomNav').classList.remove('hidden');$('welcome').textContent='Logged in as @'+storeGet('mk_gh_username')}
 function logout(){storeRemove('mk_gh_token');location.reload()}function resetSaved(){storeRemove('mk_gh_username');storeRemove('mk_gh_token');$('username').value='';$('token').value=''}
 function selectDataset(key,autoLoad=true){currentKey=key;storeSet('mk_dataset',key);document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.key===key));const d=DATASETS[key];$('datasetTitle').textContent=d.label;$('datasetInfo').textContent=`${d.owner}/${d.repo} • ${d.path} • branch ${d.branch}`;$('managerTitle').textContent=d.label+' Manager';$('managerDesc').textContent=descriptionFor(key);$('skinView').classList.toggle('hidden',key!=='skins');jsonData=[];originalRoot=null;fileSha='';changes=0;updateDirty();render();if(autoLoad)loadJson()}
-function descriptionFor(k){if(k==='skins')return 'Same MasterKit logic: base hero ID has no numeric suffix; numbered IDs are skin detail entries.';if(k==='upgrades')return 'Supports nested targets, booleans, a
+function descriptionFor(k){if(k==='skins')return 'Same MasterKit logic: base hero ID has no numeric suffix; numbered IDs are skin detail entries.';if(k==='upgrades')return 'Supports nested targets, booleans, arrays and backup/upgrade scripts.';if(k==='version')return 'Edit version code, version name, changelog, force update and Play Store link.';return 'Edit the home suggested banner entries.'}
+function headers(){const h={'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};const t=tokenValue();if(t)h.Authorization='Bearer '+t;return h}
+function apiUrl(){const d=DATASETS[currentKey];return `https://api.github.com/repos/${d.owner}/${d.repo}/contents/${d.path}`}
+function decode64(s){const bin=atob(s.replace(/\n/g,''));return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))}function encode64(s){const bytes=new TextEncoder().encode(s);let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));return btoa(bin)}
+function setStatus(m){$('status').textContent=m}function log(m){logs.unshift('['+new Date().toLocaleTimeString()+'] '+m);$('logs').textContent=logs.join('\n')||'No logs yet.'}
+async function loadJson(){
+ const d=DATASETS[currentKey];setStatus('Loading '+d.label+'...');
+ try{
+   let parsed=null;
+   try{
+     const rawRes=await fetch(d.raw+'?t='+Date.now(),{cache:'no-store'});
+     if(!rawRes.ok)throw new Error('Raw HTTP '+rawRes.status);
+     parsed=await rawRes.json();
+   }catch(rawError){
+     const res=await fetch(apiUrl()+'?ref='+encodeURIComponent(d.branch),{headers:headers(),cache:'no-store'});
+     const out=await res.json();if(!res.ok)throw new Error(out.message||rawError.message||'Load failed');
+     fileSha=out.sha;parsed=JSON.parse(decode64(out.content));
+   }
+   rootWasObject=!Array.isArray(parsed);jsonData=rootWasObject?[parsed]:parsed;
+   if(!Array.isArray(jsonData))throw new Error('Unsupported JSON root');
+   originalRoot=clone(parsed);changes=0;saveDraft();updateDirty();render();
+   setStatus(`Loaded ${d.label}. ${jsonData.length} item(s).`);log('Loaded '+d.path);
+   // SHA is only required for publishing; get it silently when token is available.
+   if(tokenValue()){
+     fetch(apiUrl()+'?ref='+encodeURIComponent(d.branch),{headers:headers(),cache:'no-store'})
+       .then(r=>r.ok?r.json():null).then(x=>{if(x&&x.sha)fileSha=x.sha}).catch(()=>{});
+   }
+ }catch(e){setStatus('Load error: '+e.message+'\nCheck the GitHub raw link or internet connection. A token is not required for loading.');log('Load error: '+e.message)}
+}
