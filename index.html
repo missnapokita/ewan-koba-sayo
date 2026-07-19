@@ -39,7 +39,7 @@ input,textarea,select{width:100%;border:1px solid var(--line);background:#0c0c0c
 </style>
 </head>
 <body>
-<div id="loginPage" class="app"><div class="card login"><h1>MasterKit Admin</h1><p style="color:var(--muted)">GitHub token is saved only in this browser.</p><label>GitHub Username</label><input id="username" placeholder="GitHub username"><label>Fine-grained GitHub Token</label><input id="token" type="password" placeholder="Token with Contents: Read and write"><button class="btn" style="width:100%;margin-top:16px" onclick="login()">Enter Dashboard</button><button class="btn btn2" style="width:100%;margin-top:10px" onclick="resetSaved()">Reset Saved Login</button><div class="status dangerNote">Use a fine-grained token limited to the two MasterKit repositories. Never publish this HTML with a token already inside it.</div></div></div>
+<div id="loginPage" class="app"><div class="card login"><h1>MasterKit Admin</h1><p style="color:var(--muted)">GitHub token is saved only in this browser.</p><label>GitHub Username</label><input id="username" placeholder="GitHub username"><label>Fine-grained GitHub Token</label><input id="token" type="password" placeholder="Token with Contents: Read and write"><button class="btn" style="width:100%;margin-top:16px" onclick="login()">Enter Dashboard</button><button class="btn btn2" style="width:100%;margin-top:10px" onclick="resetSaved()">Reset Saved Login</button><div class="status dangerNote">Use a fine-grained token limited to the two MasterKit repositories. Never publish this HTML with a token already inside it.</div><div class="status" id="loginStatus">Ready. Tap Enter Dashboard.</div></div></div>
 <div id="dashboard" class="app hidden">
 <div class="header"><div class="brand"><h1>MasterKit Admin</h1><p id="welcome">Welcome</p></div><div class="actions"><button class="btn btn2" onclick="loadJson()">Reload</button><button class="btn btn2" onclick="logout()">Logout</button></div></div>
 <div class="tabs" id="datasetTabs"></div>
@@ -54,27 +54,53 @@ input,textarea,select{width:100%;border:1px solid var(--line);background:#0c0c0c
 <div class="bottomNav hidden" id="bottomNav"><button onclick="selectDataset('version')">Update</button><button onclick="selectDataset('skins')">Skins</button><button onclick="selectDataset('upgrades')">Upgrades</button><button onclick="publishJson()">Publish</button></div>
 <script>
 const DATASETS={
- version:{label:'App Update',owner:'missnapokita',repo:'masterkiter',branch:'main',path:'version.json',kind:'object'},
- upgrades:{label:'Upgrade Skins',owner:'missnapokita',repo:'masterkiter',branch:'main',path:'skin_upgrades.json',kind:'array'},
- skins:{label:'Skins',owner:'missnapokita',repo:'masterkiter',branch:'main',path:'skins.json',kind:'array'},
- suggested:{label:'Suggested',owner:'missnapokita',repo:'hero.json',branch:'main',path:'suggested.json',kind:'array'}
+ version:{label:'App Update',owner:'missnapokita',repo:'masterkiter',branch:'main',path:'version.json',kind:'object',raw:'https://raw.githubusercontent.com/missnapokita/masterkiter/main/version.json'},
+ upgrades:{label:'Upgrade Skins',owner:'missnapokita',repo:'masterkiter',branch:'main',path:'skin_upgrades.json',kind:'array',raw:'https://raw.githubusercontent.com/missnapokita/masterkiter/main/skin_upgrades.json'},
+ skins:{label:'Skins',owner:'missnapokita',repo:'masterkiter',branch:'main',path:'skins.json',kind:'array',raw:'https://raw.githubusercontent.com/missnapokita/masterkiter/main/skins.json'},
+ suggested:{label:'Suggested',owner:'missnapokita',repo:'hero.json',branch:'main',path:'suggested.json',kind:'array',raw:'https://raw.githubusercontent.com/missnapokita/hero.json/main/suggested.json'}
 };
 let currentKey='skins',jsonData=[],originalRoot=null,fileSha='',rootWasObject=false,editIndex=-1,changes=0,logs=[];
 const $=id=>document.getElementById(id);const clone=x=>JSON.parse(JSON.stringify(x));
-function init(){ $('username').value=localStorage.getItem('mk_gh_username')||'';$('token').value=localStorage.getItem('mk_gh_token')||'';buildTabs();if($('username').value&&$('token').value){showDashboard();selectDataset(localStorage.getItem('mk_dataset')||'skins',false)}}
+const memoryStore={};
+function storeGet(key){try{return localStorage.getItem(key)}catch(e){return memoryStore[key]??null}}
+function storeSet(key,val){memoryStore[key]=String(val);try{localStorage.setItem(key,String(val))}catch(e){}}
+function storeRemove(key){delete memoryStore[key];try{localStorage.removeItem(key)}catch(e){}}
+function tokenValue(){return ($('token')?.value||storeGet('mk_gh_token')||'').trim()}
+function usernameValue(){return ($('username')?.value||storeGet('mk_gh_username')||'missnapokita').trim()}
+window.addEventListener('error',e=>{const box=$('loginStatus');if(box)box.textContent='JavaScript error: '+(e.message||'Unknown error')});
+function init(){try{$('username').value=storeGet('mk_gh_username')||'missnapokita';$('token').value=storeGet('mk_gh_token')||'';buildTabs();if($('username').value&&$('token').value){showDashboard();selectDataset(storeGet('mk_dataset')||'skins',true)}}catch(e){const b=$('loginStatus');if(b)b.textContent='Initialization error: '+e.message}}
 function buildTabs(){ $('datasetTabs').innerHTML=Object.entries(DATASETS).map(([k,d])=>`<button class="tab" data-key="${k}" onclick="selectDataset('${k}')">${d.label}</button>`).join('') }
-function login(){if(!$('username').value.trim()||!$('token').value.trim())return alert('Enter username and token.');localStorage.setItem('mk_gh_username',$('username').value.trim());localStorage.setItem('mk_gh_token',$('token').value.trim());showDashboard();selectDataset('skins')}
-function showDashboard(){$('loginPage').classList.add('hidden');$('dashboard').classList.remove('hidden');$('bottomNav').classList.remove('hidden');$('welcome').textContent='Logged in as @'+localStorage.getItem('mk_gh_username')}
-function logout(){localStorage.removeItem('mk_gh_token');location.reload()}function resetSaved(){localStorage.removeItem('mk_gh_username');localStorage.removeItem('mk_gh_token');$('username').value='';$('token').value=''}
-function selectDataset(key,autoLoad=true){currentKey=key;localStorage.setItem('mk_dataset',key);document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.key===key));const d=DATASETS[key];$('datasetTitle').textContent=d.label;$('datasetInfo').textContent=`${d.owner}/${d.repo} • ${d.path} • branch ${d.branch}`;$('managerTitle').textContent=d.label+' Manager';$('managerDesc').textContent=descriptionFor(key);$('skinView').classList.toggle('hidden',key!=='skins');jsonData=[];originalRoot=null;fileSha='';changes=0;updateDirty();render();if(autoLoad)loadJson()}
+function login(){const u=$('username').value.trim(),t=$('token').value.trim();if(!u||!t){$('loginStatus').textContent='Enter your GitHub username and token first.';return}storeSet('mk_gh_username',u);storeSet('mk_gh_token',t);$('loginStatus').textContent='Opening dashboard...';showDashboard();selectDataset(storeGet('mk_dataset')||'skins',true)}
+function showDashboard(){$('loginPage').classList.add('hidden');$('dashboard').classList.remove('hidden');$('bottomNav').classList.remove('hidden');$('welcome').textContent='Logged in as @'+storeGet('mk_gh_username')}
+function logout(){storeRemove('mk_gh_token');location.reload()}function resetSaved(){storeRemove('mk_gh_username');storeRemove('mk_gh_token');$('username').value='';$('token').value=''}
+function selectDataset(key,autoLoad=true){currentKey=key;storeSet('mk_dataset',key);document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.key===key));const d=DATASETS[key];$('datasetTitle').textContent=d.label;$('datasetInfo').textContent=`${d.owner}/${d.repo} • ${d.path} • branch ${d.branch}`;$('managerTitle').textContent=d.label+' Manager';$('managerDesc').textContent=descriptionFor(key);$('skinView').classList.toggle('hidden',key!=='skins');jsonData=[];originalRoot=null;fileSha='';changes=0;updateDirty();render();if(autoLoad)loadJson()}
 function descriptionFor(k){if(k==='skins')return 'Same MasterKit logic: base hero ID has no numeric suffix; numbered IDs are skin detail entries.';if(k==='upgrades')return 'Supports nested targets, booleans, arrays and backup/upgrade scripts.';if(k==='version')return 'Edit version code, version name, changelog, force update and Play Store link.';return 'Edit the home suggested banner entries.'}
-function headers(){return {'Authorization':'Bearer '+localStorage.getItem('mk_gh_token'),'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}}
+function headers(){const h={'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};const t=tokenValue();if(t)h.Authorization='Bearer '+t;return h}
 function apiUrl(){const d=DATASETS[currentKey];return `https://api.github.com/repos/${d.owner}/${d.repo}/contents/${d.path}`}
 function decode64(s){const bin=atob(s.replace(/\n/g,''));return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))}function encode64(s){const bytes=new TextEncoder().encode(s);let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));return btoa(bin)}
 function setStatus(m){$('status').textContent=m}function log(m){logs.unshift('['+new Date().toLocaleTimeString()+'] '+m);$('logs').textContent=logs.join('\n')||'No logs yet.'}
-async function loadJson(){const d=DATASETS[currentKey];setStatus('Loading '+d.label+'...');try{const res=await fetch(apiUrl()+'?ref='+encodeURIComponent(d.branch),{headers:headers()});const out=await res.json();if(!res.ok)throw new Error(out.message||'Load failed');fileSha=out.sha;const parsed=JSON.parse(decode64(out.content));rootWasObject=!Array.isArray(parsed);jsonData=rootWasObject?[parsed]:parsed;if(!Array.isArray(jsonData))throw new Error('Unsupported JSON root');originalRoot=clone(parsed);changes=0;saveDraft();updateDirty();render();setStatus(`Loaded ${d.label}. ${jsonData.length} item(s).`);log('Loaded '+d.path)}catch(e){setStatus('Error: '+e.message);log('Load error: '+e.message)}}
-async function publishJson(){const d=DATASETS[currentKey];if(!jsonData.length&&!rootWasObject&&!confirm('Publish an empty array?'))return;setStatus('Publishing...');try{const latest=await fetch(apiUrl()+'?ref='+encodeURIComponent(d.branch),{headers:headers()});const latestData=await latest.json();if(!latest.ok)throw new Error(latestData.message||'Cannot get latest SHA');fileSha=latestData.sha;const root=rootWasObject?(jsonData[0]||{}):jsonData;const body={message:`Update ${d.path} via MasterKit Admin`,content:encode64(JSON.stringify(root,null,2)),branch:d.branch,sha:fileSha};const res=await fetch(apiUrl(),{method:'PUT',headers:{...headers(),'Content-Type':'application/json'},body:JSON.stringify(body)});const out=await res.json();if(!res.ok)throw new Error(out.message||'Publish failed');fileSha=out.content.sha;originalRoot=clone(root);changes=0;saveDraft();updateDirty();setStatus('Published successfully to GitHub.');log('Published '+d.path)}catch(e){setStatus('Error: '+e.message);log('Publish error: '+e.message)}}
-function draftKey(){return 'mk_draft_'+currentKey}function saveDraft(){localStorage.setItem(draftKey(),JSON.stringify({rootWasObject,jsonData}))}function markChanged(){changes++;saveDraft();updateDirty()}function updateDirty(){$('changedText').textContent=changes;$('dirtyPill').textContent=changes?'Unsaved local changes':'Saved';$('dirtyPill').classList.toggle('dangerNote',!!changes)}
-function isBaseSkin(x){return !/\d+$/.test(String(x?.id||'').trim())}function itemEnabled(x){const v=x?.enabled??x?.visible??x?.status;if(v===false||String(v).toLowerCase()==='false'||String(v).toLowerCase()==='disabled'||String(v)==='0')return false;return true}
-function imageOf(x){return x?.base_image||x?.image||x?.image_url||x?.img||x?.thumbnail||x?.poster||x?.icon||x?.background||''}
-function titleOf(x){if(currentKey==='upgrades')return x?.base_name||x?.name||x?.id||'Upgrade';if(currentKey==='skins')return x?.hero_name||x?.hero||x?.name||x?.skin_name||x?.id||'Skin'
+async function loadJson(){
+ const d=DATASETS[currentKey];setStatus('Loading '+d.label+'...');
+ try{
+   let parsed=null;
+   try{
+     const rawRes=await fetch(d.raw+'?t='+Date.now(),{cache:'no-store'});
+     if(!rawRes.ok)throw new Error('Raw HTTP '+rawRes.status);
+     parsed=await rawRes.json();
+   }catch(rawError){
+     const res=await fetch(apiUrl()+'?ref='+encodeURIComponent(d.branch),{headers:headers(),cache:'no-store'});
+     const out=await res.json();if(!res.ok)throw new Error(out.message||rawError.message||'Load failed');
+     fileSha=out.sha;parsed=JSON.parse(decode64(out.content));
+   }
+   rootWasObject=!Array.isArray(parsed);jsonData=rootWasObject?[parsed]:parsed;
+   if(!Array.isArray(jsonData))throw new Error('Unsupported JSON root');
+   originalRoot=clone(parsed);changes=0;saveDraft();updateDirty();render();
+   setStatus(`Loaded ${d.label}. ${jsonData.length} item(s).`);log('Loaded '+d.path);
+   // SHA is only required for publishing; get it silently when token is available.
+   if(tokenValue()){
+     fetch(apiUrl()+'?ref='+encodeURIComponent(d.branch),{headers:headers(),cache:'no-store'})
+       .then(r=>r.ok?r.json():null).then(x=>{if(x&&x.sha)fileSha=x.sha}).catch(()=>{});
+   }
+ }catch(e){setStatus('Load error: '+e.message+'\nCheck internet access, token, and WebView JavaScript settings.');log('Load error: '+e.message)}
+}
+async function publishJson(){const d=DATASETS[currentKey];if(!jsonData.length&&!rootWasObject&&!confirm('Publish an empty array?'))return;setStatus('Publishing...');try{const latest=await fetc
