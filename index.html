@@ -52,48 +52,65 @@ input,textarea,select{width:100%;border:1px solid var(--line);background:#0c0c0c
       var username = document.getElementById('username');
       var token = document.getElementById('token');
       var status = document.getElementById('loginStatus');
-      var u = username ? String(username.value || '').replace(/^\s+|\s+$/g,'') : '';
-      var t = token ? String(token.value || '').replace(/^\s+|\s+$/g,'') : '';
-      if (!u || !t) {
-        if (status) status.textContent = 'Enter your GitHub username and token first.';
-        return false;
-      }
+
+      var u = username ? String(username.value || '').trim() : '';
+      var t = token ? String(token.value || '').trim() : '';
+
+      if (!u) u = 'missnapokita';
+
       try { localStorage.setItem('mk_gh_username', u); } catch(e) {}
-      try { localStorage.setItem('mk_gh_token', t); } catch(e) {}
+      if (t) {
+        try { localStorage.setItem('mk_gh_token', t); } catch(e) {}
+      }
+
       var loginPage = document.getElementById('loginPage');
       var dashboard = document.getElementById('dashboard');
       var bottomNav = document.getElementById('bottomNav');
-      if (loginPage) loginPage.className = loginPage.className.replace(/\bhidden\b/g,'') + ' hidden';
-      if (dashboard) dashboard.className = dashboard.className.replace(/\bhidden\b/g,'').replace(/^\s+|\s+$/g,'');
-      if (bottomNav) bottomNav.className = bottomNav.className.replace(/\bhidden\b/g,'').replace(/^\s+|\s+$/g,'');
+
+      if (loginPage) loginPage.classList.add('hidden');
+      if (dashboard) dashboard.classList.remove('hidden');
+      if (bottomNav) bottomNav.classList.remove('hidden');
+
+      var welcome = document.getElementById('welcome');
+      if (welcome) welcome.textContent = 'Logged in as @' + u;
+
       if (status) status.textContent = 'Dashboard opened. Loading skins.json...';
+
       setTimeout(function(){
-        try {
-          if (typeof window.selectDataset === 'function') {
-            window.selectDataset('skins', true);
-          } else if (typeof window.loadJson === 'function') {
-            window.loadJson();
-          } else {
-            var mainStatus = document.getElementById('status');
-            if (mainStatus) mainStatus.textContent = 'Admin script did not initialize. Refresh the page or upload the latest index.html.';
+        if (typeof window.selectDataset === 'function') {
+          window.selectDataset('skins', true);
+        } else {
+          var mainStatus = document.getElementById('status');
+          if (mainStatus) {
+            mainStatus.textContent =
+              'Dashboard opened, but the main admin script did not initialize.';
           }
-        } catch(e) {
-          var mainStatus2 = document.getElementById('status');
-          if (mainStatus2) mainStatus2.textContent = 'Load error: ' + e.message;
         }
-      }, 50);
+      }, 0);
+
       return false;
     } catch(e) {
-      var status2 = document.getElementById('loginStatus');
-      if (status2) status2.textContent = 'Login error: ' + e.message;
+      var box = document.getElementById('loginStatus');
+      if (box) box.textContent = 'Login error: ' + (e && e.message ? e.message : e);
       return false;
     }
   };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var btn = document.getElementById('enterDashboardBtn');
+    if (btn) {
+      btn.onclick = null;
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        window.masterkitEnterDashboard();
+      });
+    }
+  });
 })();
 </script>
 </head>
 <body>
-<div id="loginPage" class="app"><div class="card login"><h1>MasterKit Admin</h1><p style="color:var(--muted)">GitHub token is saved only in this browser.</p><label>GitHub Username</label><input id="username" placeholder="GitHub username"><label>Fine-grained GitHub Token</label><input id="token" type="password" placeholder="Token with Contents: Read and write"><button id="enterDashboardBtn" type="button" class="btn" style="width:100%;margin-top:16px" onclick="return masterkitEnterDashboard()">Enter Dashboard</button><button class="btn btn2" style="width:100%;margin-top:10px" onclick="resetSaved()">Reset Saved Login</button><div class="status dangerNote">Use a fine-grained token limited to the two MasterKit repositories. Never publish this HTML with a token already inside it.</div><div class="status" id="loginStatus">Ready. Tap Enter Dashboard.</div></div></div>
+<div id="loginPage" class="app"><div class="card login"><h1>MasterKit Admin</h1><p style="color:var(--muted)">Token is optional for viewing. It is required only when publishing changes.</p><label>GitHub Username</label><input id="username" placeholder="GitHub username"><label>Fine-grained GitHub Token (optional until Publish)</label><input id="token" type="password" placeholder="Token with Contents: Read and write"><button id="enterDashboardBtn" type="button" class="btn" style="width:100%;margin-top:16px" onclick="return masterkitEnterDashboard()">Enter Dashboard</button><button class="btn btn2" style="width:100%;margin-top:10px" onclick="resetSaved()">Reset Saved Login</button><div class="status dangerNote">Use a fine-grained token limited to the two MasterKit repositories. Never publish this HTML with a token already inside it.</div><div class="status" id="loginStatus">Ready. Tap Enter Dashboard.</div></div></div>
 <div id="dashboard" class="app hidden">
 <div class="header"><div class="brand"><h1>MasterKit Admin</h1><p id="welcome">Welcome</p></div><div class="actions"><button class="btn btn2" onclick="loadJson()">Reload</button><button class="btn btn2" onclick="logout()">Logout</button></div></div>
 <div class="tabs" id="datasetTabs"></div>
@@ -124,8 +141,16 @@ function usernameValue(){return ($('username')?.value||storeGet('mk_gh_username'
 window.addEventListener('error',e=>{const box=$('loginStatus');if(box)box.textContent='JavaScript error: '+(e.message||'Unknown error')});
 function init(){try{$('username').value=storeGet('mk_gh_username')||'missnapokita';$('token').value=storeGet('mk_gh_token')||'';buildTabs();if($('username').value&&$('token').value){showDashboard();selectDataset(storeGet('mk_dataset')||'skins',true)}}catch(e){const b=$('loginStatus');if(b)b.textContent='Initialization error: '+e.message}}
 function buildTabs(){ $('datasetTabs').innerHTML=Object.entries(DATASETS).map(([k,d])=>`<button class="tab" data-key="${k}" onclick="selectDataset('${k}')">${d.label}</button>`).join('') }
-function login(){const u=$('username').value.trim(),t=$('token').value.trim();if(!u||!t){$('loginStatus').textContent='Enter your GitHub username and token first.';return}storeSet('mk_gh_username',u);storeSet('mk_gh_token',t);$('loginStatus').textContent='Opening dashboard...';showDashboard();selectDataset(storeGet('mk_dataset')||'skins',true)}
+function login(){
+  const u=($('username').value.trim()||'missnapokita');
+  const t=$('token').value.trim();
+  storeSet('mk_gh_username',u);
+  if(t) storeSet('mk_gh_token',t);
+  $('loginStatus').textContent='Opening dashboard...';
+  showDashboard();
+  selectDataset(storeGet('mk_dataset')||'skins',true);
+}
 function showDashboard(){$('loginPage').classList.add('hidden');$('dashboard').classList.remove('hidden');$('bottomNav').classList.remove('hidden');$('welcome').textContent='Logged in as @'+storeGet('mk_gh_username')}
 function logout(){storeRemove('mk_gh_token');location.reload()}function resetSaved(){storeRemove('mk_gh_username');storeRemove('mk_gh_token');$('username').value='';$('token').value=''}
 function selectDataset(key,autoLoad=true){currentKey=key;storeSet('mk_dataset',key);document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.key===key));const d=DATASETS[key];$('datasetTitle').textContent=d.label;$('datasetInfo').textContent=`${d.owner}/${d.repo} • ${d.path} • branch ${d.branch}`;$('managerTitle').textContent=d.label+' Manager';$('managerDesc').textContent=descriptionFor(key);$('skinView').classList.toggle('hidden',key!=='skins');jsonData=[];originalRoot=null;fileSha='';changes=0;updateDirty();render();if(autoLoad)loadJson()}
-function descriptionFor(k){if(k==='skins')return 'Same MasterKit logic: base hero ID has no numeric suffix; numbered ID
+function descriptionFor(k){if(k==='skins')return 'Same MasterKit logic: base hero ID has no numeric suffix; numbered IDs are skin detail entries.';if(k==='upgrades')return 'Supports nested targets, booleans, a
