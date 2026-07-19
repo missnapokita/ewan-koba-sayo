@@ -1,131 +1,344 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b0b0d">
 <title>MasterKit Admin</title>
 <style>
 :root{
-  --bg:#080808;--surface:#111111;--surface2:#171717;--surface3:#1e1e1e;
-  --line:rgba(255,255,255,.09);--line2:rgba(255,179,0,.26);
-  --text:#f5f5f5;--muted:#8d8d8d;--gold:#ffb300;--gold2:#ffca28;
-  --red:#ef5350;--shadow:0 20px 60px rgba(0,0,0,.48)
+  --bg:#09090b;--card:#151517;--card2:#1b1b1e;--line:#2b2b30;
+  --text:#f6f6f7;--muted:#98989f;--gold:#ffb300;--gold2:#ffca28;
+  --danger:#ef5350;--ok:#43a047;--radius:18px
 }
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-  margin:0;min-height:100vh;color:var(--text);font-family:Inter,Roboto,Arial,sans-serif;
-  background:
-    radial-gradient(circle at 12% -8%,rgba(255,179,0,.16),transparent 30%),
-    radial-gradient(circle at 95% 3%,rgba(255,179,0,.07),transparent 24%),
-    linear-gradient(180deg,#090909 0%,#0d0d0d 48%,#080808 100%);
+*{box-sizing:border-box} html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);
+font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+body{background:
+radial-gradient(circle at 50% -10%,rgba(255,179,0,.18),transparent 32%),
+linear-gradient(180deg,#0b0b0d,#080809)}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.app{width:min(960px,94%);margin:auto;padding:22px 0 100px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:54px;height:54px;border:2px solid rgba(255,179,0,.42);border-radius:17px;
+display:grid;place-items:center;color:var(--gold);font-size:30px;font-weight:900;background:#171719;
+box-shadow:0 0 0 5px rgba(255,179,0,.05)}
+.brand h1{margin:0;font-size:26px;line-height:1.05}.brand p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.card{background:linear-gradient(180deg,#19191b,#121214);border:1px solid var(--line);
+border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:0 16px 50px rgba(0,0,0,.28)}
+.login{max-width:480px;margin:60px auto}
+.eyebrow{color:var(--gold);letter-spacing:.25em;font-weight:900;font-size:12px}
+h2{margin:8px 0 6px;font-size:24px}.muted{color:var(--muted)}
+label{display:block;margin:14px 0 7px;color:#b8b8bd;font-size:12px;font-weight:800;text-transform:uppercase}
+input,textarea,select{width:100%;border:1px solid var(--line);border-radius:13px;padding:12px 13px;
+background:#0d0d0f;color:var(--text);outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,179,0,.12)}
+textarea{min-height:110px;resize:vertical}
+.btn{border:0;border-radius:13px;padding:11px 15px;font-weight:850;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#171000}
+.btn.secondary{background:#202024;color:#fff;border:1px solid #34343a}
+.btn.danger{background:var(--danger);color:#fff}.btn.ok{background:var(--ok);color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:flex;gap:9px;flex-wrap:wrap}.actions .btn{min-width:110px}
+.status{margin-top:13px;padding:12px 14px;border-radius:13px;background:#0c0c0e;border:1px solid var(--line);
+white-space:pre-wrap;color:#d7d7da;font-size:13px}
+.tabs{display:flex;gap:8px;overflow:auto;padding:8px 0 14px;scrollbar-width:none}
+.tab{white-space:nowrap;border:1px solid var(--line);background:#171719;color:#bbb;padding:10px 14px;border-radius:999px;font-weight:800}
+.tab.active{background:var(--gold);color:#181000;border-color:var(--gold)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:#141416;border:1px solid var(--line);border-radius:16px;padding:14px}
+.stat b{font-size:25px;color:var(--gold);display:block}.stat span{font-size:11px;color:var(--muted);text-transform:uppercase}
+.toolbar{display:grid;grid-template-columns:1fr auto auto;gap:9px;align-items:center}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.item{background:#151517;border:1px solid var(--line);border-radius:17px;overflow:hidden}
+.thumb{aspect-ratio:3/4;background:#0d0d0f;display:grid;place-items:center;color:#696970;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover;object-position:center top}
+.meta{padding:12px}.name{font-weight:900;line-height:1.25}.sub{color:var(--muted);font-size:12px;margin-top:5px;min-height:18px}
+.badge{display:inline-block;margin-bottom:8px;border:1px solid rgba(255,179,0,.35);color:var(--gold);
+background:rgba(255,179,0,.08);border-radius:999px;padding:4px 8px;font-size:10px;font-weight:900}
+.itemActions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px}
+.itemActions .btn{padding:9px 7px;font-size:12px}.itemActions .danger{grid-column:1/-1}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;
+padding:14px;z-index:99}.modalBox{width:min(700px,100%);max-height:92vh;overflow:auto;background:#151517;
+border:1px solid #333;border-radius:22px;padding:18px}
+.modalHead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.modalHead h2{margin:0}.field{margin-top:10px}.fieldRow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+.fieldRow .btn{padding:10px}
+.preview{height:190px;border:1px solid var(--line);border-radius:14px;margin-top:12px;overflow:hidden;
+display:grid;place-items:center;color:var(--muted);background:#0c0c0e}
+.preview img{width:100%;height:100%;object-fit:cover;object-position:center top}
+.raw{min-height:420px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}
+.bottom{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:min(650px,94%);
+display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:8px;background:rgba(16,16,18,.94);
+border:1px solid var(--line);border-radius:20px;backdrop-filter:blur(12px);z-index:40}
+.bottom button{border:0;background:transparent;color:#aaa;padding:10px 3px;font-weight:800;font-size:11px;border-radius:12px}
+.bottom button.active{background:rgba(255,179,0,.15);color:var(--gold)}
+@media(max-width:650px){
+ .top{align-items:flex-start;flex-direction:column}.stats{grid-template-columns:repeat(3,1fr)}
+ .toolbar{grid-template-columns:1fr}.list{grid-template-columns:repeat(2,1fr);gap:9px}
+ .actions .btn{flex:1}.bottom{grid-template-columns:repeat(5,1fr)}
+ .brand h1{font-size:23px}.meta{padding:9px}.name{font-size:13px}
 }
-body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:34px 34px}
-button,input,textarea,select{font-family:inherit}.app{width:min(1180px,94%);margin:auto;padding:20px 0 104px}.hidden{display:none!important}
-.header{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 2px 18px}.brand{display:flex;align-items:center;gap:12px}.brand:before{content:"M";display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:linear-gradient(145deg,#242424,#101010);border:1px solid rgba(255,179,0,.34);color:var(--gold);font-weight:1000;font-size:24px;box-shadow:0 0 0 4px rgba(255,179,0,.055),0 10px 30px rgba(0,0,0,.5)}.brand h1{margin:0;font-size:25px;letter-spacing:.2px}.brand p{margin:4px 0 0;color:var(--muted);font-size:13px}
-.card{background:linear-gradient(180deg,rgba(28,28,28,.96),rgba(15,15,15,.96));border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow)}.login{max-width:440px;margin:64px auto;position:relative;overflow:hidden}.login:before{content:"MASTERKIT";display:block;color:var(--gold);font-size:11px;font-weight:900;letter-spacing:3px;margin-bottom:10px}.login h1{margin:0 0 8px;font-size:28px}.login p{line-height:1.5}
-label{font-size:11px;font-weight:800;letter-spacing:.35px;text-transform:uppercase;color:#999;display:block;margin:14px 0 7px}
-input,textarea,select{width:100%;border:1px solid var(--line);background:#0c0c0c;color:var(--text);border-radius:13px;padding:12px 13px;outline:none;font-size:14px;transition:.18s}textarea{min-height:100px;resize:vertical}input:focus,textarea:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,179,0,.11)}select option{background:#111;color:#fff}
-.btn{border:1px solid rgba(255,179,0,.42);border-radius:13px;padding:11px 15px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#171000;box-shadow:0 8px 22px rgba(255,179,0,.12);transition:.18s}.btn:hover{transform:translateY(-1px);filter:brightness(1.05)}.btn:active{transform:scale(.98)}.btn2{background:#191919;color:#eee;border:1px solid var(--line);box-shadow:none}.btnRed{background:#3a1717;border-color:rgba(239,83,80,.42);color:#ffb7b5;box-shadow:none}.btnYellow{background:var(--gold);color:#1b1200}.actions,.tools{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
-.status{white-space:pre-wrap;color:#cfcfcf;background:#0b0b0b;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:13px;padding:12px 13px;margin-top:13px;font-size:12.5px;line-height:1.5}.dangerNote{border-color:rgba(255,179,0,.28)!important;background:rgba(255,179,0,.07)!important;color:#ffe2a0!important}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:14px 0}.stat{padding:15px;border-radius:17px;background:linear-gradient(160deg,#181818,#101010);border:1px solid var(--line);position:relative;overflow:hidden}.stat:after{content:"";position:absolute;width:52px;height:52px;border-radius:50%;right:-20px;top:-22px;background:rgba(255,179,0,.08)}.stat b{display:block;font-size:25px;color:var(--gold);line-height:1}.stat span{display:block;margin-top:7px;font-size:11px;text-transform:uppercase;letter-spacing:.45px;color:var(--muted)}
-.tabs{display:flex;gap:8px;overflow:auto;padding:8px;margin:10px 0 14px;border-radius:17px;background:#0c0c0c;border:1px solid var(--line);scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tab{white-space:nowrap;border:1px solid transparent;background:transparent;color:#9b9b9b;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:900}.tab.active{background:#222;color:var(--gold);border-color:rgba(255,179,0,.25);box-shadow:inset 0 -2px 0 var(--gold)}
-.searchRow{display:grid;grid-template-columns:1fr auto auto;gap:9px;margin-top:13px}.sectionTitle{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:18px 0 10px}.sectionTitle h2{margin:0;font-size:19px}.sectionTitle small{color:var(--muted)}.datasetInfo{font-size:11.5px;color:var(--muted);margin-top:8px;word-break:break-all}.pill{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;background:rgba(255,179,0,.09);border:1px solid rgba(255,179,0,.23);font-size:11px;font-weight:800;color:#ffd56a}
-.horizontal{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}.item{position:relative;overflow:hidden;border:1px solid var(--line);background:#121212;border-radius:17px;box-shadow:0 10px 28px rgba(0,0,0,.25);transition:.2s}.item:hover{transform:translateY(-2px);border-color:rgba(255,179,0,.24)}.thumb{width:100%;aspect-ratio:3/4;background:#090909;display:flex;align-items:center;justify-content:center;color:#5e5e5e;font-size:12px;border-bottom:1px solid var(--line)}.thumb img{width:100%;height:100%;object-fit:cover;object-position:center top}.meta{padding:10px}.name1{font-weight:900;font-size:13px;line-height:1.25;word-break:break-word}.name2{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.25;word-break:break-word}.itemBtns{display:grid;grid-template-columns:1fr;gap:6px;margin-top:9px}.itemBtns button{width:100%;min-height:36px;padding:8px;border-radius:11px;font-size:11px}.badge{position:absolute;top:8px;left:8px;background:rgba(8,8,8,.84);border:1px solid rgba(255,179,0,.35);border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900;color:var(--gold);z-index:2;backdrop-filter:blur(8px)}.badge.right{left:auto;right:8px;color:#ddd;border-color:rgba(255,255,255,.17)}
-.bottomNav{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);width:min(680px,94%);z-index:10;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px;border-radius:19px;background:rgba(12,12,12,.94);border:1px solid var(--line);backdrop-filter:blur(18px);box-shadow:0 18px 60px rgba(0,0,0,.55)}.bottomNav button{color:#888;background:transparent;border:0;border-radius:12px;padding:10px 4px;font-size:12px;font-weight:900}.bottomNav button.active{background:rgba(255,179,0,.10);color:var(--gold)}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:99;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px)}.modalBox{width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:21px;background:#111;border:1px solid rgba(255,179,0,.20);padding:18px;box-shadow:0 28px 100px rgba(0,0,0,.72)}.preview{height:220px;margin-top:12px;border-radius:16px;background:#080808;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden;color:#5f5f5f}.preview img{width:100%;height:100%;object-fit:cover;object-position:center top}.fieldWrap{padding:12px;margin-top:10px;border:1px solid var(--line);border-radius:15px;background:#0c0c0c}.fieldHead{display:flex;justify-content:space-between;align-items:center;gap:10px}.fieldHead label{margin:0}.removeField{font-size:11px;color:#ff9290;cursor:pointer}.typeRow{display:grid;grid-template-columns:1fr 140px;gap:8px;margin-top:8px}.checkRow{display:flex;align-items:center;gap:10px;padding:10px 0}.checkRow input{width:auto}.logs{max-height:180px;overflow:auto;font-size:12px;color:#c6c6c6;background:#090909;border:1px solid var(--line);padding:12px;border-radius:13px}.versionBox{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-@media(max-width:760px){.app{width:94%;padding-top:10px}.stats{grid-template-columns:repeat(2,1fr)}.header{align-items:flex-start;flex-direction:column}.searchRow{grid-template-columns:1fr}.horizontal{grid-template-columns:repeat(3,1fr);gap:8px}.meta{padding:8px}.name1{font-size:11.5px;text-align:center}.name2{font-size:10px;text-align:center}.badge{font-size:8px;padding:4px 6px;top:6px;left:6px}.badge.right{left:auto;right:6px}.item{border-radius:14px}.itemBtns button{min-height:32px;font-size:10px;padding:7px 5px}.versionBox,.typeRow{grid-template-columns:1fr}.brand:before{width:40px;height:40px;border-radius:12px}.brand h1{font-size:22px}}
-@media(max-width:390px){.horizontal{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:370px){.list{grid-template-columns:1fr 1fr}.bottom button{font-size:10px}}
 </style>
-
 </head>
 <body>
-<div class="app" id="loginPage"><div class="card login"><h1>MasterKit Admin</h1><p style="color:var(--muted)">Token is optional for viewing. It is required only when publishing changes.</p><label>GitHub Username</label><input id="username" placeholder="GitHub username"/><label>Fine-grained GitHub Token (optional until Publish)</label><input id="token" placeholder="Token with Contents: Read and write" type="password"/><button class="btn" id="enterDashboardBtn" onclick="login(); return false;" style="width:100%;margin-top:16px" type="button">Enter Dashboard</button><button class="btn btn2" onclick="resetSaved()" style="width:100%;margin-top:10px">Reset Saved Login</button><div class="status dangerNote">Use a fine-grained token limited to the two MasterKit repositories. Never publish this HTML with a token already inside it.</div><div class="status" id="loginStatus">Ready. Tap Enter Dashboard.</div></div></div>
-<div class="app hidden" id="dashboard">
-<div class="header"><div class="brand"><h1>MasterKit Admin</h1><p id="welcome">Welcome</p></div><div class="actions"><button class="btn btn2" onclick="loadJson()">Reload</button><button class="btn btn2" onclick="logout()">Logout</button></div></div>
-<div class="tabs" id="datasetTabs"></div>
-<div class="card"><div class="sectionTitle" style="margin-top:0"><div><h2 id="datasetTitle">Dataset</h2><div class="datasetInfo" id="datasetInfo"></div></div><span class="pill" id="dirtyPill">Saved</span></div><div class="tools"><button class="btn" onclick="loadJson()">Load JSON</button><button class="btn" onclick="publishJson()">Publish</button><button class="btn btn2" onclick="previewRaw()">Raw JSON</button><button class="btn btn2" onclick="downloadBackup()">Backup</button><button class="btn btn2" onclick="discardReload()">Discard / Reload</button></div><div class="status" id="status">Choose a dataset, then load it.</div></div>
-<div class="stats"><div class="stat"><b id="totalCount">0</b><span>Total Items</span></div><div class="stat"><b id="shownCount">0</b><span>Shown</span></div><div class="stat"><b id="baseCount">0</b><span>Base Heroes</span></div><div class="stat"><b id="changedText">0</b><span>Local Changes</span></div></div>
-<div class="card"><div class="sectionTitle" style="margin-top:0"><div><h2 id="managerTitle">Content Manager</h2><small id="managerDesc">Edit the selected JSON.</small></div><button class="btn" onclick="addItem()">+ Add</button></div><div class="searchRow"><input id="searchBox" oninput="render()" placeholder="Search all fields..."/><select id="statusFilter" onchange="render()"><option value="">All status</option><option value="enabled">Enabled</option><option value="disabled">Disabled</option></select><select id="skinView" onchange="render()"><option value="base">Base heroes only</option><option value="all">All skins</option><option value="numbered">Numbered skins only</option></select></div><div class="tools" style="margin-top:13px"><button class="btn btn2" onclick="sortAZ()">Sort A-Z</button><button class="btn btn2" onclick="testVisibleImages()">Test Images</button><button class="btn btn2" onclick="toggleLogs()">Logs</button><button class="btn btnRed" onclick="clearLocal()">Clear Draft</button></div></div>
-<div class="sectionTitle"><h2>All Items</h2><small id="listInfo">0 items</small></div><div class="horizontal" id="list"></div>
-<div class="card hidden" id="logsCard" style="margin-top:16px"><div class="sectionTitle" style="margin-top:0"><h2>Logs</h2><button class="btn btn2" onclick="toggleLogs()">Hide</button></div><div class="logs" id="logs">No logs yet.</div></div>
+
+<section id="loginPage" class="app">
+  <div class="card login">
+    <div class="eyebrow">MASTERKIT</div>
+    <h2>MasterKit Admin</h2>
+    <p class="muted">Token is optional for viewing. It is required only when publishing changes.</p>
+    <label>GitHub username</label>
+    <input id="username" value="missnapokita" autocomplete="username">
+    <label>Fine-grained GitHub token</label>
+    <input id="token" type="password" placeholder="github_pat_..." autocomplete="current-password">
+    <button id="enterBtn" class="btn" style="width:100%;margin-top:16px">Enter Dashboard</button>
+    <div id="loginStatus" class="status">Ready.</div>
+  </div>
+</section>
+
+<section id="dashboard" class="app hidden">
+  <header class="top">
+    <div class="brand"><div class="logo">M</div><div><h1>MasterKit Admin</h1><p id="welcome">GitHub JSON manager</p></div></div>
+    <div class="actions"><button class="btn secondary" id="reloadBtn">Reload</button><button class="btn secondary" id="logoutBtn">Logout</button></div>
+  </header>
+
+  <div id="tabs" class="tabs"></div>
+
+  <div class="card">
+    <div class="actions">
+      <button class="btn" id="loadBtn">Load JSON</button>
+      <button class="btn" id="publishBtn">Publish</button>
+      <button class="btn secondary" id="rawBtn">Raw JSON</button>
+      <button class="btn secondary" id="backupBtn">Backup</button>
+      <button class="btn secondary" id="discardBtn">Discard / Reload</button>
+    </div>
+    <div id="status" class="status">Choose a dataset.</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b id="total">0</b><span>Total items</span></div>
+    <div class="stat"><b id="shown">0</b><span>Shown</span></div>
+    <div class="stat"><b id="changes">0</b><span>Changes</span></div>
+  </div>
+
+  <div class="card">
+    <div class="toolbar">
+      <input id="search" placeholder="Search all fields...">
+      <button class="btn" id="addBtn">+ Add</button>
+      <button class="btn secondary" id="sortBtn">Sort A–Z</button>
+    </div>
+  </div>
+
+  <div id="list" class="list"></div>
+</section>
+
+<nav id="bottom" class="bottom hidden"></nav>
+
+<div id="editModal" class="modal hidden">
+  <div class="modalBox">
+    <div class="modalHead"><h2 id="editTitle">Edit Item</h2><button class="btn secondary" id="closeEdit">Close</button></div>
+    <div id="fields"></div>
+    <button class="btn secondary" id="addFieldBtn" style="margin-top:12px">+ Custom Field</button>
+    <div id="preview" class="preview">Image preview</div>
+    <div class="actions" style="margin-top:14px"><button class="btn" id="saveEdit">Save Local</button><button class="btn secondary" id="cancelEdit">Cancel</button></div>
+  </div>
 </div>
-<div class="modal hidden" id="modal"><div class="modalBox"><div class="sectionTitle" style="margin-top:0"><h2 id="modalTitle">Edit Item</h2><button class="btn btn2" onclick="closeModal()">Close</button></div><div id="fields"></div><button class="btn btn2" onclick="addCustomField()" style="margin-top:13px">+ Add Custom Field</button><div class="preview" id="imgPreview">Image Preview</div><div class="actions" style="margin-top:15px"><button class="btn" onclick="saveEdit()">Save Local</button><button class="btn btn2" onclick="closeModal()">Cancel</button></div></div></div>
-<div class="modal hidden" id="rawModal"><div class="modalBox"><div class="sectionTitle" style="margin-top:0"><h2>Raw JSON</h2><button class="btn btn2" onclick="closeRaw()">Close</button></div><textarea id="rawBox" style="min-height:430px"></textarea><div class="actions" style="margin-top:12px"><button class="btn" onclick="applyRaw()">Apply Locally</button></div></div></div>
-<div class="bottomNav hidden" id="bottomNav"><button onclick="selectDataset('version')">Update</button><button onclick="selectDataset('skins')">Skins</button><button onclick="selectDataset('upgrades')">Upgrades</button><button onclick="publishJson()">Publish</button></div>
+
+<div id="rawModal" class="modal hidden">
+  <div class="modalBox">
+    <div class="modalHead"><h2>Raw JSON</h2><button class="btn secondary" id="closeRaw">Close</button></div>
+    <textarea id="rawBox" class="raw"></textarea>
+    <button class="btn" id="applyRaw" style="margin-top:12px">Apply Locally</button>
+  </div>
+</div>
+
 <script>
-const DATASETS={
- version:{label:'App Update',owner:'missnapokita',repo:'masterkiter',branch:'main',path:'version.json',kind:'object',raw:'https://raw.githubusercontent.com/missnapokita/masterkiter/main/version.json'},
- upgrades:{label:'Upgrade Skins',owner:'missnapokita',repo:'masterkiter',branch:'main',path:'skin_upgrades.json',kind:'array',raw:'https://raw.githubusercontent.com/missnapokita/masterkiter/main/skin_upgrades.json'},
- skins:{label:'Skins',owner:'missnapokita',repo:'masterkiter',branch:'main',path:'skins.json',kind:'array',raw:'https://raw.githubusercontent.com/missnapokita/masterkiter/main/skins.json'},
- suggested:{label:'Suggested',owner:'missnapokita',repo:'hero.json',branch:'main',path:'suggested.json',kind:'array',raw:'https://raw.githubusercontent.com/missnapokita/hero.json/main/suggested.json'}
+"use strict";
+
+const DATASETS = {
+  version: {
+    label:"Version", owner:"missnapokita", repo:"masterkiter", branch:"main", path:"version.json",
+    raw:"https://raw.githubusercontent.com/missnapokita/masterkiter/main/version.json", root:"object",
+    defaults:{version_code:1,version_name:"1.0.0",title:"MasterKit Update Available",message:"",changelog:[],download_url:"",update_size:"",force_update:false}
+  },
+  skins: {
+    label:"Skins", owner:"missnapokita", repo:"masterkiter", branch:"main", path:"skins.json",
+    raw:"https://raw.githubusercontent.com/missnapokita/masterkiter/main/skins.json", root:"array",
+    defaults:{id:"",hero_name:"",skin_name:"",image:"",script:"",enabled:true}
+  },
+  upgrades: {
+    label:"Upgrades", owner:"missnapokita", repo:"masterkiter", branch:"main", path:"skin_upgrades.json",
+    raw:"https://raw.githubusercontent.com/missnapokita/masterkiter/main/skin_upgrades.json", root:"array",
+    defaults:{id:"",hero:"",base_name:"",base_image:"",backup_script:"",enabled:true,targets:[],skin_tags:[]}
+  },
+  suggested: {
+    label:"Suggested", owner:"missnapokita", repo:"hero.json", branch:"main", path:"suggested.json",
+    raw:"https://raw.githubusercontent.com/missnapokita/hero.json/main/suggested.json", root:"array",
+    defaults:{hero_name:"",skin_name:"",image:""}
+  },
+  preparations: {
+    label:"Preparations", owner:"missnapokita", repo:"hero.json", branch:"main", path:"preparations.json",
+    raw:"https://raw.githubusercontent.com/missnapokita/hero.json/main/preparations.json", root:"array",
+    defaults:{name:"",image:"",script:"",tags:"recall",enabled:true}
+  }
 };
-let currentKey='skins',jsonData=[],originalRoot=null,fileSha='',rootWasObject=false,editIndex=-1,changes=0,logs=[];
-const $=id=>document.getElementById(id);const clone=x=>JSON.parse(JSON.stringify(x));
-const memoryStore={};
-function storeGet(key){try{return localStorage.getItem(key)}catch(e){return memoryStore[key]??null}}
-function storeSet(key,val){memoryStore[key]=String(val);try{localStorage.setItem(key,String(val))}catch(e){}}
-function storeRemove(key){delete memoryStore[key];try{localStorage.removeItem(key)}catch(e){}}
-function tokenValue(){return ($('token')?.value||storeGet('mk_gh_token')||'').trim()}
-function usernameValue(){return ($('username')?.value||storeGet('mk_gh_username')||'missnapokita').trim()}
-window.addEventListener('error',e=>{const box=$('loginStatus');if(box)box.textContent='JavaScript error: '+(e.message||'Unknown error')});
+
+const $ = id => document.getElementById(id);
+let currentKey="skins", data=[], original=[], sha="", changed=0, editIndex=-1, rootWasObject=false;
+
+function safeGet(k,d=""){try{return localStorage.getItem(k)??d}catch(e){return d}}
+function safeSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function clone(v){return JSON.parse(JSON.stringify(v))}
+function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+function setStatus(msg){$("status").textContent=msg}
+function token(){return $("token").value.trim() || safeGet("mk_token","")}
+function username(){return $("username").value.trim() || "missnapokita"}
+function ds(){return DATASETS[currentKey]}
+function headers(){const h={"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"};if(token())h.Authorization="Bearer "+token();return h}
+function apiUrl(){const d=ds();return `https://api.github.com/repos/${d.owner}/${d.repo}/contents/${d.path}`}
+function encode64(s){const bytes=new TextEncoder().encode(s);let b="";bytes.forEach(x=>b+=String.fromCharCode(x));return btoa(b)}
+function decode64(s){const b=atob(String(s).replace(/\n/g,""));return new TextDecoder().decode(Uint8Array.from(b,c=>c.charCodeAt(0)))}
+function valueType(v){if(Array.isArray(v))return"array";if(v===null)return"null";return typeof v}
+function displayValue(v){return (typeof v==="object"&&v!==null)?JSON.stringify(v,null,2):String(v??"")}
+function parseTyped(text,type){
+  if(type==="boolean")return String(text).toLowerCase()==="true";
+  if(type==="number"){const n=Number(text);if(Number.isNaN(n))throw new Error("Invalid number");return n}
+  if(type==="array"||type==="object"){const v=JSON.parse(text|| (type==="array"?"[]":"{}"));if(type==="array"&&!Array.isArray(v))throw new Error("Expected JSON array");if(type==="object"&&(Array.isArray(v)||typeof v!=="object"||v===null))throw new Error("Expected JSON object");return v}
+  if(type==="null")return null;
+  return text;
+}
+
 function init(){
+  $("username").value=safeGet("mk_username","missnapokita");
+  $("token").value=safeGet("mk_token","");
+  buildTabs();
+  bind();
+  $("loginStatus").textContent="Ready. Token is optional until Publish.";
+}
+function bind(){
+  $("enterBtn").addEventListener("click",enter);
+  $("logoutBtn").addEventListener("click",logout);
+  $("reloadBtn").addEventListener("click",loadData);
+  $("loadBtn").addEventListener("click",loadData);
+  $("publishBtn").addEventListener("click",publish);
+  $("rawBtn").addEventListener("click",openRaw);
+  $("backupBtn").addEventListener("click",backup);
+  $("discardBtn").addEventListener("click",()=>{if(confirm("Discard local changes and reload?"))loadData()});
+  $("search").addEventListener("input",render);
+  $("addBtn").addEventListener("click",addItem);
+  $("sortBtn").addEventListener("click",sortItems);
+  $("closeEdit").addEventListener("click",closeEdit);
+  $("cancelEdit").addEventListener("click",closeEdit);
+  $("saveEdit").addEventListener("click",saveEdit);
+  $("addFieldBtn").addEventListener("click",addCustomField);
+  $("closeRaw").addEventListener("click",()=>$("rawModal").classList.add("hidden"));
+  $("applyRaw").addEventListener("click",applyRaw);
+}
+function enter(){
+  safeSet("mk_username",username()); if($("token").value.trim())safeSet("mk_token",$("token").value.trim());
+  $("loginPage").classList.add("hidden");$("dashboard").classList.remove("hidden");$("bottom").classList.remove("hidden");
+  $("welcome").textContent="Logged in as @"+username();
+  selectDataset(safeGet("mk_dataset","skins"),true);
+}
+function logout(){
+  $("dashboard").classList.add("hidden");$("bottom").classList.add("hidden");$("loginPage").classList.remove("hidden");
+}
+function buildTabs(){
+  $("tabs").innerHTML="";$("bottom").innerHTML="";
+  Object.entries(DATASETS).forEach(([k,d])=>{
+    const a=document.createElement("button");a.className="tab";a.textContent=d.label;a.onclick=()=>selectDataset(k,true);a.dataset.key=k;$("tabs").appendChild(a);
+    const b=document.createElement("button");b.textContent=d.label;b.onclick=()=>selectDataset(k,true);b.dataset.key=k;$("bottom").appendChild(b);
+  });
+}
+function selectDataset(k,autoload=false){
+  if(!DATASETS[k])k="skins";currentKey=k;safeSet("mk_dataset",k);
+  document.querySelectorAll("[data-key]").forEach(x=>x.classList.toggle("active",x.dataset.key===k));
+  data=[];original=[];sha="";changed=0;updateStats();render();
+  setStatus(`${ds().label}\n${ds().owner}/${ds().repo}/${ds().path}`);
+  if(autoload)loadData();
+}
+async function loadData(){
+  setStatus("Loading "+ds().label+"...");
   try{
-    $('username').value=storeGet('mk_gh_username')||'missnapokita';
-    $('token').value=storeGet('mk_gh_token')||'';
-    buildTabs();
-    $('loginStatus').textContent='Ready. Token is optional until Publish.';
-  }catch(e){
-    const b=$('loginStatus');
-    if(b)b.textContent='Initialization error: '+e.message;
-  }
+    let parsed, apiData=null;
+    try{
+      const r=await fetch(ds().raw+"?t="+Date.now(),{cache:"no-store"});
+      if(!r.ok)throw new Error("Raw HTTP "+r.status);
+      parsed=await r.json();
+    }catch(rawErr){
+      const r=await fetch(apiUrl()+"?ref="+encodeURIComponent(ds().branch)+"&t="+Date.now(),{headers:headers(),cache:"no-store"});
+      apiData=await r.json();if(!r.ok)throw new Error(apiData.message||"GitHub API load failed");
+      parsed=JSON.parse(decode64(apiData.content));sha=apiData.sha||"";
+    }
+    rootWasObject=!Array.isArray(parsed);
+    data=Array.isArray(parsed)?parsed:[parsed];
+    original=clone(data);changed=0;
+    if(!sha){try{const r=await fetch(apiUrl()+"?ref="+encodeURIComponent(ds().branch),{headers:headers(),cache:"no-store"});const j=await r.json();if(r.ok)sha=j.sha||""}catch(e){}}
+    updateStats();render();setStatus(`Loaded ${data.length} item(s) from ${ds().path}.`);
+  }catch(e){setStatus("Load error: "+e.message)}
 }
-function buildTabs(){ $('datasetTabs').innerHTML=Object.entries(DATASETS).map(([k,d])=>`<button class="tab" data-key="${k}" onclick="selectDataset('${k}')">${d.label}</button>`).join('') }
-function login(){
-  try{
-    const u = ($('username').value.trim() || 'missnapokita');
-    const t = $('token').value.trim();
-
-    storeSet('mk_gh_username', u);
-    if(t) storeSet('mk_gh_token', t);
-
-    $('loginStatus').textContent = 'Opening dashboard...';
-    showDashboard();
-    selectDataset('skins', true);
-  }catch(e){
-    $('loginStatus').textContent = 'Login error: ' + e.message;
-  }
+function titleOf(o){
+  if(currentKey==="version")return o.title||o.version_name||"Version";
+  if(currentKey==="upgrades")return o.base_name||o.hero||o.id||"Upgrade";
+  if(currentKey==="preparations")return o.name||o.title||"Preparation";
+  return o.hero_name||o.skin_name||o.name||o.title||o.id||"Item";
 }
-function showDashboard(){$('loginPage').classList.add('hidden');$('dashboard').classList.remove('hidden');$('bottomNav').classList.remove('hidden');$('welcome').textContent='Logged in as @'+storeGet('mk_gh_username')}
-function logout(){storeRemove('mk_gh_token');location.reload()}function resetSaved(){storeRemove('mk_gh_username');storeRemove('mk_gh_token');$('username').value='';$('token').value=''}
-function selectDataset(key,autoLoad=true){currentKey=key;storeSet('mk_dataset',key);document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.key===key));const d=DATASETS[key];$('datasetTitle').textContent=d.label;$('datasetInfo').textContent=`${d.owner}/${d.repo} • ${d.path} • branch ${d.branch}`;$('managerTitle').textContent=d.label+' Manager';$('managerDesc').textContent=descriptionFor(key);$('skinView').classList.toggle('hidden',key!=='skins');jsonData=[];originalRoot=null;fileSha='';changes=0;updateDirty();render();if(autoLoad)loadJson()}
-function descriptionFor(k){if(k==='skins')return 'Same MasterKit logic: base hero ID has no numeric suffix; numbered IDs are skin detail entries.';if(k==='upgrades')return 'Supports nested targets, booleans, arrays and backup/upgrade scripts.';if(k==='version')return 'Edit version code, version name, changelog, force update and Play Store link.';return 'Edit the home suggested banner entries.'}
-function headers(){const h={'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};const t=tokenValue();if(t)h.Authorization='Bearer '+t;return h}
-function apiUrl(){const d=DATASETS[currentKey];return `https://api.github.com/repos/${d.owner}/${d.repo}/contents/${d.path}`}
-function decode64(s){const bin=atob(s.replace(/\n/g,''));return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))}function encode64(s){const bytes=new TextEncoder().encode(s);let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));return btoa(bin)}
-function setStatus(m){$('status').textContent=m}function log(m){logs.unshift('['+new Date().toLocaleTimeString()+'] '+m);$('logs').textContent=logs.join('\n')||'No logs yet.'}
-async function loadJson(){
- const d=DATASETS[currentKey];setStatus('Loading '+d.label+'...');
- try{
-   let parsed=null;
-   try{
-     const rawRes=await fetch(d.raw+'?t='+Date.now(),{cache:'no-store'});
-     if(!rawRes.ok)throw new Error('Raw HTTP '+rawRes.status);
-     parsed=await rawRes.json();
-   }catch(rawError){
-     const res=await fetch(apiUrl()+'?ref='+encodeURIComponent(d.branch),{headers:headers(),cache:'no-store'});
-     const out=await res.json();if(!res.ok)throw new Error(out.message||rawError.message||'Load failed');
-     fileSha=out.sha;parsed=JSON.parse(decode64(out.content));
-   }
-   rootWasObject=!Array.isArray(parsed);jsonData=rootWasObject?[parsed]:parsed;
-   if(!Array.isArray(jsonData))throw new Error('Unsupported JSON root');
-   originalRoot=clone(parsed);changes=0;saveDraft();updateDirty();render();
-   setStatus(`Loaded ${d.label}. ${jsonData.length} item(s).`);log('Loaded '+d.path);
-   // SHA is only required for publishing; get it silently when token is available.
-   if(tokenValue()){
-     fetch(apiUrl()+'?ref='+encodeURIComponent(d.branch),{headers:headers(),cache:'no-store'})
-       .then(r=>r.ok?r.json():null).then(x=>{if(x&&x.sha)fileSha=x.sha}).catch(()=>{});
-   }
- }catch(e){setStatus('Load error: '+e.message+'\nCheck the GitHub raw link or internet connection. A token is not required for loading.');log('Load error: '+e.message)}
+function subOf(o){
+  if(currentKey==="version")return `${o.version_name||""} • code ${o.version_code??""}`;
+  if(currentKey==="upgrades")return `${o.hero||""} • ${(o.targets||[]).length} target(s)`;
+  if(currentKey==="preparations")return Array.isArray(o.tags)?o.tags.join(", "):(o.tags||o.type||"");
+  return o.skin_name||o.hero_name||o.id||"";
 }
+function imageOf(o){return o.image||o.base_image||o.image_url||o.thumbnail||o.poster||""}
+function badgeOf(o){
+  if(currentKey==="version")return"UPDATE";
+  if(currentKey==="upgrades")return"UPGRADE";
+  if(currentKey==="preparations"){const t=Array.isArray(o.tags)?o.tags.join(" "):String(o.tags||"");return t.toLowerCase().includes("emote")?"EMOTE":"RECALL"}
+  if(currentKey==="suggested")return"SUGGESTED";
+  return"SKIN";
+}
+function render(){
+  const q=$("search").value.toLowerCase().trim();$("list").innerHTML="";let shown=0;
+  data.forEach((o,i)=>{
+    if(q&&!JSON.stringify(o).toLowerCase().includes(q))return;shown++;
+    const card=document.createElement("article");card.className="item";
+    const img=imageOf(o);
+    card.innerHTML=`<div class="thumb">${img?`<img src="${esc(img)}" loading="lazy" onerror="this.remove();this.parentElement.textContent='Image failed'">`:"No image"}</div>
+      <div class="meta"><span class="badge">${esc(badgeOf(o))}</span><div class="name">${esc(titleOf(o))}</div>
+      <div class="sub">${esc(subOf(o))}</div><div class="itemActions">
+      <button class="btn" data-act="edit">Edit</button><button class="btn secondary" data-act="copy">Copy</button>
+      <button class="btn danger" data-act="delete">Delete</button></div></div>`;
+    card.querySelector('[data-act="edit"]').onclick=()=>openEdit(i);
+    card.querySelector('[data-act="copy"]').onclick=()=>copyItem(i);
+    card.querySelector('[data-act="delete"]').onclick=()=>deleteItem(i);
+    $("list").appendChild(card);
+  });
+  $("shown").textContent=shown;$("total").textContent=data.length;
+  if(!shown)$("list").innerHTML='<div class="card">No items found.</div>';
+}
+function updateStats(){$("total").textContent=data.length;$("shown").textContent=data.length;$("changes").textContent=changed}
+function mark(){changed++;updateStats()}
+function addItem(){data.unshift(clone(ds().defaults));mark();render();openEdit(0)}
+function copyItem(i){data.splice(i+1,0,clone(data[i]));mark();render()}
+function deleteItem(i){if(confirm("Delete this item?")){data.splice(i,1);mark();render()}}
+function sortItems(){data.sort((a,b)=>titleOf(a).localeCompare(titleOf(b)));mark();render()}
+function priorityKeys(o){
+  const map={
+    version:["version_code","version_name","title","message","changelog","download_url","update_size","force_update"],
+    skins:["id","hero_name","skin_name","image","script","enabled"],
+    upgrades:["id","hero","base_name","base_image","backup_script","enabled","targets","skin_tags"],
+    suggested:["hero_name","skin_name","image"],
+    preparations:["name","image","script","tags","enabled"]
+  };
+  return [...new Set([...(map[currentKey]||[]),...Object.keys(o)])];
+}
+function openEdit(i){
+  editIndex=i;const o=data[i]||{};$("fields").innerHTML="";$("editTitle").textContent="Edit "+ds().label;
+  priorityKeys(o).forEach(k=>addField(k,o[k]!==undefined?o[k]:""));
+  updatePreview();$("editModal").classList.remove("hidden");
+}
+function addField(key,value){
+  const type=valueType(value)==="undefined"?"string":valueTy
